@@ -18,9 +18,9 @@ async def analyze_page(
     params = request.rel_url.query.get('urls')
     if not params:
         return web.json_response({'error': "no params passed"})
-    if len(params) > 10:
-        return web.json_response({'error': "too many urls in request, should be 10 or less"}, status=400)
     urls = params.split(',')
+    if len(urls) > 10:
+        return web.json_response({'error': "too many urls in request, should be 10 or less"}, status=400)
     tasks = []
     async with asyncio.TaskGroup() as tg:
         for url in urls:
@@ -40,10 +40,15 @@ async def analyze_page(
     return web.json_response(response_data)
 
 
-with open(os.path.join('.', 'data', 'negative_words.txt'), 'r', encoding='UTF-8') as file:
-    charged_words = [readline.strip() for readline in file]
-morph = pymorphy2.MorphAnalyzer()
-callback = partial(analyze_page, charged_words=charged_words, morph=morph)
-app = web.Application()
-app.add_routes([web.get('/', callback)])
-web.run_app(app)
+def main():
+    with open(os.path.join('.', 'data', 'negative_words.txt'), 'r', encoding='UTF-8') as file:
+        charged_words = [readline.strip() for readline in file]
+    morph = pymorphy2.MorphAnalyzer()
+    callback = partial(analyze_page, charged_words=charged_words, morph=morph)
+    app = web.Application()
+    app.add_routes([web.get('/', callback)])
+    web.run_app(app)
+
+
+if __name__ == '__main__':
+    main()
