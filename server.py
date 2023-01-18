@@ -17,7 +17,7 @@ async def analyze_page(
 ):
     params = request.rel_url.query.get('urls')
     if not params:
-        return web.json_response({})
+        return web.json_response({'error': "no params passed"})
     if len(params) > 10:
         return web.json_response({'error': "too many urls in request, should be 10 or less"}, status=400)
     urls = params.split(',')
