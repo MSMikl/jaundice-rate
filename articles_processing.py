@@ -82,26 +82,6 @@ async def process_article(
         )
 
 
-async def main():
-    logging.basicConfig(level=logging.INFO)
-    with open(os.path.join('.', 'data', 'negative_words.txt'), 'r', encoding='UTF-8') as file:
-        charged_words = [readline.strip() for readline in file]
-    morph = pymorphy2.MorphAnalyzer()
-    results = []
-    async with asyncio.TaskGroup() as tg:
-        for url in TEST_ARTICLES:
-            result = tg.create_task(process_article(url, charged_words, morph))
-            results.append(result)
-    for result in results:
-        url, status, words_count, rating, time_used = result.result()
-        print('URL', url)
-        print('Статус', status.name)
-        print('Количество слов:', words_count)
-        print('Рейтинг желтушности:', rating)
-        logging.info(f'Время на анализ составило {time_used} секунд')
-        print('\n')
-
-
 def test_process_article():
     with open(os.path.join('.', 'data', 'negative_words.txt'), 'r', encoding='UTF-8') as file:
         charged_words = [readline.strip() for readline in file]
@@ -123,7 +103,3 @@ def test_process_article():
         timeout=0.3
     ))
     assert timeout_result[1] == ProcessingStatus('TIMEOUT_ERROR')
-
-
-if __name__ == '__main__':
-    asyncio.run(main())
