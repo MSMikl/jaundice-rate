@@ -10,7 +10,11 @@ from functools import partial
 from articles_processing import process_article
 
 
-async def analyze_page(request: aiohttp.ClientRequest, charged_words: list, morph: pymorphy2.MorphAnalyzer):
+async def analyze_page(
+    request: aiohttp.ClientRequest,
+    charged_words: list,
+    morph: pymorphy2.MorphAnalyzer
+):
     params = request.rel_url.query.get('urls')
     if not params:
         return web.json_response({})

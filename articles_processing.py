@@ -29,9 +29,11 @@ class ProcessingStatus(Enum):
     TIMEOUT_ERROR = 'TIMEOUT_ERROR'
     PARSING_ERROR = 'PARSING_ERROR'
 
+
 @asynccontextmanager
 async def timer():
     time_start = time.monotonic()
+
     def current_time():
         return round(time.monotonic() - time_start, 3)
     try:
@@ -46,7 +48,12 @@ async def fetch(session: aiohttp.ClientSession, url: str):
         return await response.text()
 
 
-async def process_article(url: str, charged_words: list, morph: pymorphy2.MorphAnalyzer, timeout=3):
+async def process_article(
+    url: str,
+    charged_words: list,
+    morph: pymorphy2.MorphAnalyzer,
+    timeout=3
+):
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(timeout)) as session:
         try:
             html = await fetch(session, url)
@@ -61,13 +68,18 @@ async def process_article(url: str, charged_words: list, morph: pymorphy2.MorphA
             except (KeyError, ArticleNotFound):
                 return url, ProcessingStatus('PARSING_ERROR'), None, None, None
             try:
-                async with asyncio.timeout(timeout): 
+                async with asyncio.timeout(timeout):
                     splitted_text = await asyncio.to_thread(split_by_words, morph, plaintext)
             except TimeoutError:
                 return url, ProcessingStatus('TIMEOUT_ERROR'), None, None, time_used()
             analyzing_time = time_used()
-        result = url, ProcessingStatus('OK'), len(splitted_text), calculate_jaundice_rate(splitted_text, charged_words), analyzing_time
-        return result
+        return (
+            url,
+            ProcessingStatus('OK'),
+            len(splitted_text),
+            calculate_jaundice_rate(splitted_text, charged_words),
+            analyzing_time
+        )
 
 
 async def main():
@@ -104,10 +116,13 @@ def test_process_article():
     assert results[2][2] > 0
     assert 0.0 < results[2][3] < 100.0
 
-    timeout_result = asyncio.run(process_article(TEST_ARTICLES[2], charged_words, morph, timeout=0.3))
+    timeout_result = asyncio.run(process_article(
+        TEST_ARTICLES[2],
+        charged_words,
+        morph,
+        timeout=0.3
+    ))
     assert timeout_result[1] == ProcessingStatus('TIMEOUT_ERROR')
-
-
 
 
 if __name__ == '__main__':
