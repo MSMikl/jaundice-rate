@@ -34,10 +34,10 @@ class ProcessingStatus(Enum):
 async def timer():
     time_start = time.monotonic()
 
-    def current_time():
+    def get_execution_time():
         return round(time.monotonic() - time_start, 3)
     try:
-        yield current_time
+        yield get_execution_time
     finally:
         pass
 
